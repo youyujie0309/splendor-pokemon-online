@@ -1,0 +1,18 @@
+{
+  "name": "splendor-pokemon-online",
+  "version": "1.0.0",
+  "description": "璀璨宝石：宝可梦 联机版 (Splendor: Pokémon Multiplayer Web Game)",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node server/test-engine.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

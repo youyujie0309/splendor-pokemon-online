@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#F4F6FA" />
+  <meta name="description" content="璀璨宝石：宝可梦 在线联机版 — 2至4人实时对战，收集精灵球、捕捉与进化关都宝可梦，冲刺18分！" />
+  <title>璀璨宝石：宝可梦 · 好友联机版</title>
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <!-- ==================== 1. LOBBY VIEW ==================== -->
+    <main id="view-lobby" class="view view-lobby">
+      <header class="top-nav">
+        <div class="brand">
+          <span class="brand-ball" id="brand-ball-icon" aria-hidden="true"></span>
+          <div class="brand-text">
+            <h1>璀璨宝石：宝可梦</h1>
+            <p class="brand-sub">好友实时联机 · 关都90卡完整版</p>
+          </div>
+        </div>
+        <div class="nav-actions">
+          <button id="btn-open-rules" class="icon-pill" type="button" title="游戏规则">
+            <span class="icon-glyph">📖</span><span>规则</span>
+          </button>
+          <button id="btn-open-records" class="icon-pill" type="button" title="对局记录">
+            <span class="icon-glyph">🏆</span><span>记录</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Trainer Profile Strip -->
+      <section class="profile-card" aria-label="训练家信息">
+        <button id="btn-edit-profile" class="profile-row" type="button">
+          <img id="profile-avatar-img" class="trainer-avatar" src="/assets/pokemon/25.webp" alt="训练家头像" />
+          <div class="profile-info">
+            <span class="profile-label">我的训练家名片</span>
+            <strong id="profile-name-display" class="profile-name">训练家</strong>
+          </div>
+          <span class="profile-edit-tag">修改形象 ›</span>
+        </button>
+      </section>
+
+      <!-- Active Connection Status -->
+      <div id="conn-banner" class="conn-banner hidden" role="status">正在连接联机服务器...</div>
+
+      <!-- Room Lobby Section -->
+      <section class="lobby-section" aria-label="房间大厅">
+        <div class="section-head">
+          <div class="section-title-group">
+            <h2>房间大厅</h2>
+            <span id="lobby-count-badge" class="count-pill">0 个公开房间</span>
+          </div>
+          <div class="section-actions">
+            <button id="btn-join-code-open" class="pill-btn" type="button">房间号加入</button>
+            <button id="btn-refresh-lobby" class="pill-btn" type="button">刷新</button>
+          </div>
+        </div>
+
+        <div id="lobby-room-list" class="room-list">
+          <div class="empty-state">
+            <img src="/assets/pokemon/133.webp" alt="伊布" class="empty-sprite" />
+            <p class="empty-title">暂无公开等待中的房间</p>
+            <p class="empty-desc">点击下方「创建房间」开一桌，把链接发给微信好友即可直连开玩！</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sticky Bottom Action Bar (inspired by mobile board game lobby) -->
+      <footer class="lobby-footer">
+        <button id="btn-quick-practice" class="btn btn-secondary" type="button">单机练习 (vs AI)</button>
+        <button id="btn-create-room-open" class="btn btn-primary" type="button">创建联机房间</button>
+      </footer>
+    </main>
+
+    <!-- ==================== 2. WAITING ROOM VIEW ==================== -->
+    <main id="view-waiting" class="view view-waiting hidden">
+      <header class="top-nav">
+        <button id="btn-leave-waiting" class="icon-pill" type="button">‹ 返回大厅</button>
+        <div class="room-title-center">
+          <span class="room-code-label">等待开局</span>
+          <strong id="waiting-room-code" class="room-code-num">------</strong>
+        </div>
+        <button id="btn-waiting-rules" class="icon-pill" type="button">📖 规则</button>
+      </header>
+
+      <section class="invite-card">
+        <div class="invite-info">
+          <p class="invite-title">邀请好友加入对局</p>
+          <p class="invite-sub">复制链接发到微信/QQ群，好友点开即可直接进入本房间</p>
+        </div>
+        <div class="invite-btns">
+          <button id="btn-copy-code" class="btn btn-outline btn-sm" type="button">复制房间号</button>
+          <button id="btn-copy-link" class="btn btn-primary btn-sm" type="button">复制邀请链接</button>
+        </div>
+      </section>
+
+      <section class="seats-section">
+        <div class="section-head">
+          <h2>训练家席位 <span id="waiting-seat-count" class="count-pill">1/4</span></h2>
+          <button id="btn-add-bot" class="pill-btn hidden" type="button">+ 添加 AI 补位</button>
+        </div>
+        <div id="waiting-seats" class="seats-grid"></div>
+      </section>
+
+      <section class="settings-card">
+        <h3>房间规则设置</h3>
+        <div class="setting-row">
+          <span class="setting-label">房间人数</span>
+          <div class="seg-group" id="set-max-players">
+            <button type="button" class="seg-btn" data-val="2">2人</button>
+            <button type="button" class="seg-btn" data-val="3">3人</button>
+            <button type="button" class="seg-btn" data-val="4">4人</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">胜利分数</span>
+          <div class="seg-group" id="set-target-score">
+            <button type="button" class="seg-btn" data-val="15">15分(快速)</button>
+            <button type="button" class="seg-btn" data-val="18">18分(标准)</button>
+            <button type="button" class="seg-btn" data-val="21">21分(加长)</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">回合限时</span>
+          <div class="seg-group" id="set-turn-timer">
+            <button type="button" class="seg-btn" data-val="0">不限时</button>
+            <button type="button" class="seg-btn" data-val="30">30秒</button>
+            <button type="button" class="seg-btn" data-val="60">60秒</button>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">大厅可见</span>
+          <div class="seg-group" id="set-is-public">
+            <button type="button" class="seg-btn" data-val="true">公开房间</button>
+            <button type="button" class="seg-btn" data-val="false">仅房间号</button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="lobby-footer">
+        <button id="btn-start-game" class="btn btn-primary btn-full" type="button">开始对局</button>
+        <div id="waiting-guest-tip" class="guest-tip hidden">已入座，等待房主开始对局...</div>
+      </footer>
+    </main>
+
+    <!-- ==================== 3. GAMEPLAY VIEW ==================== -->
+    <main id="view-game" class="view view-game hidden">
+      <!-- Compact Top Game Header -->
+      <header class="game-header">
+        <div class="game-header-left">
+          <button id="btn-game-exit" class="mini-icon-btn" type="button" title="退出对局">‹</button>
+          <span id="game-room-badge" class="game-meta-pill">房 000000</span>
+          <span id="game-round-badge" class="game-meta-pill">第 1 轮</span>
+          <span id="game-target-badge" class="game-meta-pill">目标 18分</span>
+        </div>
+        <div class="game-header-right">
+          <button id="btn-game-emote" class="mini-icon-btn" type="button" title="快捷发言">💬</button>
+          <button id="btn-game-log" class="mini-icon-btn" type="button" title="对局日志">📜</button>
+          <button id="btn-game-rules" class="mini-icon-btn" type="button" title="规则说明">?</button>
+        </div>
+      </header>
+
+      <!-- Final Round Alert Banner -->
+      <div id="final-round-banner" class="final-round-banner hidden">
+        ⚡ 最后一轮！本轮结束后将结算最终胜负
+      </div>
+
+      <!-- Opponents & Players Status Strip -->
+      <section id="players-strip" class="players-strip" aria-label="玩家状态"></section>
+
+      <!-- Main Tabletop Area -->
+      <div class="tabletop-body">
+        <!-- Market Board (Special + Lv3/2/1) -->
+        <section class="market-board" aria-label="宝可梦展示区">
+          <!-- Special Tier: Rare & Legendary -->
+          <div class="special-row">
+            <div id="slot-rare" class="special-slot-wrap"></div>
+            <div id="slot-legendary" class="special-slot-wrap"></div>
+          </div>
+
+          <!-- Standard Tiers: Lv.3, Lv.2, Lv.1 -->
+          <div class="tier-row" data-tier="3">
+            <button class="deck-pile tier-3" data-deck-tier="3" type="button" title="点击盲抽预留 Lv.3">
+              <span class="deck-lv">Lv.3</span>
+              <span class="deck-dots">•••</span>
+              <span id="deck-count-3" class="deck-count">11</span>
+            </button>
+            <div id="board-row-3" class="cards-row"></div>
+          </div>
+
+          <div class="tier-row" data-tier="2">
+            <button class="deck-pile tier-2" data-deck-tier="2" type="button" title="点击盲抽预留 Lv.2">
+              <span class="deck-lv">Lv.2</span>
+              <span class="deck-dots">••</span>
+              <span id="deck-count-2" class="deck-count">26</span>
+            </button>
+            <div id="board-row-2" class="cards-row"></div>
+          </div>
+
+          <div class="tier-row" data-tier="1">
+            <button class="deck-pile tier-1" data-deck-tier="1" type="button" title="点击盲抽预留 Lv.1">
+              <span class="deck-lv">Lv.1</span>
+              <span class="deck-dots">•</span>
+              <span id="deck-count-1" class="deck-count">31</span>
+            </button>
+            <div id="board-row-1" class="cards-row"></div>
+          </div>
+        </section>
+
+        <!-- Side / Bottom Controls Column -->
+        <aside class="controls-column">
+          <!-- Turn Banner & Staged Token Confirm Bar -->
+          <div id="turn-status-bar" class="turn-status-bar">
+            <span id="turn-status-text">等待回合开始...</span>
+            <span id="turn-timer-pill" class="timer-pill hidden">30s</span>
+          </div>
+
+          <div id="token-confirm-bar" class="token-confirm-bar hidden">
+            <span id="token-confirm-desc" class="token-confirm-desc">已选精灵球</span>
+            <div class="token-confirm-btns">
+              <button id="btn-cancel-tokens" class="btn btn-outline btn-xs" type="button">重选</button>
+              <button id="btn-confirm-tokens" class="btn btn-primary btn-xs" type="button">确认拿取</button>
+            </div>
+          </div>
+
+          <!-- Poké Ball Supply Tray -->
+          <section class="supply-tray" aria-label="精灵球供应区">
+            <div id="supply-balls" class="supply-balls"></div>
+          </section>
+
+          <!-- Personal Player Dock -->
+          <section id="self-dock" class="self-dock" aria-label="我的资源与宝可梦">
+            <div class="self-dock-top">
+              <div class="self-id">
+                <img id="self-avatar" class="self-avatar" src="/assets/pokemon/25.webp" alt="我" />
+                <div>
+                  <div class="self-name-row">
+                    <strong id="self-name">我</strong>
+                    <span id="self-vp" class="vp-pill">0 / 18 分</span>
+                  </div>
+                  <span id="self-ball-limit" class="self-sub">精灵球 0/10 · 进化 0次</span>
+                </div>
+              </div>
+              <div class="self-dock-tabs">
+                <button id="btn-open-my-team" class="dock-tab-btn" type="button">
+                  队伍 <span id="my-team-count" class="mini-badge">0</span>
+                </button>
+                <button id="btn-open-my-reserved" class="dock-tab-btn" type="button">
+                  预留 <span id="my-reserved-count" class="mini-badge">0/3</span>
+                </button>
+              </div>
+            </div>
+            <div id="self-resources" class="self-resources"></div>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== TOAST & EMOTE OVERLAY ==================== -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- ==================== MODALS & BOTTOM SHEETS ==================== -->
+  <div id="modal-backdrop" class="modal-backdrop hidden"></div>
+
+  <!-- Generic Dynamic Sheet / Modal -->
+  <div id="modal-sheet" class="modal-sheet hidden" role="dialog" aria-modal="true">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h3 id="modal-title">详情</h3>
+      <button id="modal-close" class="sheet-close" type="button" aria-label="关闭">✕</button>
+    </div>
+    <div id="modal-body" class="sheet-body"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
